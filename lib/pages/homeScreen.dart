@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:habita/pages/screens/progressScreen.dart';
+import 'package:habita/pages/screens/settings.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -9,6 +11,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  void _navigateBottomBar(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   final Map<String, bool> habits = {
     'Morning Exercise': true,
     'Read a Book': true,
@@ -48,208 +58,229 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String today = DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
-    int completedCount = habits.values.where((v) => v).length;
+    // 1. Define the Home UI as a separate Widget with its own Scaffold and AppBar
+    Widget habitHome() {
+      String today = DateFormat('EEEE, d MMMM yyyy').format(DateTime.now());
+      int completedCount = habits.values.where((v) => v).length;
 
-    Widget buildProgress() {
-      double progress = habits.isEmpty ? 0 : completedCount / habits.length;
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            height: 90,
-            width: 90,
-            child: CircularProgressIndicator(
-              value: progress,
-              strokeWidth: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+      Widget buildProgress() {
+        double progress = habits.isEmpty ? 0 : completedCount / habits.length;
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              height: 90,
+              width: 90,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 8,
+                backgroundColor: Colors.white.withValues(alpha: 0.3),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
             ),
-          ),
-          Text(
-            "${(progress * 100).toStringAsFixed(0)}%",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            Text(
+              "${(progress * 100).toStringAsFixed(0)}%",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
-      );
-    }
+          ],
+        );
+      }
 
-    Widget buildHabitTile(String habitName, bool isCompleted) {
-      return Dismissible(
-        key: Key(habitName),
-        direction: DismissDirection.endToStart,
-        onDismissed: (direction) {
-          setState(() {
-            habits.remove(habitName);
-          });
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('$habitName deleted')));
-        },
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
-          decoration: BoxDecoration(
-            color: Colors.red,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.delete, color: Colors.white),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Container(
-            padding: const EdgeInsets.all(12),
+      Widget buildHabitTile(String habitName, bool isCompleted) {
+        return Dismissible(
+          key: Key(habitName),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) {
+            setState(() {
+              habits.remove(habitName);
+            });
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('$habitName deleted')));
+          },
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Colors.red,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              children: [
-                Checkbox(
-                  value: isCompleted,
-                  onChanged: (value) {
-                    setState(() {
-                      habits[habitName] = value ?? false;
-                    });
-                  },
-                ),
-                Expanded(
-                  child: Text(
-                    habitName,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      decoration: isCompleted
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
-                  ),
-                ),
-                Icon(
-                  isCompleted ? Icons.check_circle : Icons.circle_outlined,
-                  color: isCompleted ? Colors.green : Colors.grey,
-                ),
-              ],
-            ),
+            child: const Icon(Icons.delete, color: Colors.white),
           ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          today,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        const TextSpan(text: 'Hello, '),
-                        TextSpan(
-                          text: 'Aditya!',
-                          style: const TextStyle(color: Colors.orange),
-                        ),
-                      ],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(Icons.account_circle_rounded),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFA94D), Color(0xFFFF6A00)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  buildProgress(),
-                  const SizedBox(width: 20),
+                  Checkbox(
+                    value: isCompleted,
+                    onChanged: (value) {
+                      setState(() {
+                        habits[habitName] = value ?? false;
+                      });
+                    },
+                  ),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "$completedCount of ${habits.length} habits",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          "completed today!",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ],
+                    child: Text(
+                      habitName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
                     ),
+                  ),
+                  Icon(
+                    isCompleted ? Icons.check_circle : Icons.circle_outlined,
+                    color: isCompleted ? Colors.green : Colors.grey,
                   ),
                 ],
               ),
             ),
           ),
-          Row(
-            children: const [
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Text(
-                  'Today Habit',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+        );
+      }
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            today,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(text: 'Hello, '),
+                          TextSpan(
+                            text: 'Aditya!',
+                            style: const TextStyle(color: Colors.orange),
+                          ),
+                        ],
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Icon(Icons.account_circle_rounded),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFA94D), Color(0xFFFF6A00)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    buildProgress(),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "$completedCount of ${habits.length} habits",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            "completed today!",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Spacer(),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Text('See all', style: TextStyle(color: Colors.orange)),
-              ),
-            ],
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              children: habits.entries
-                  .map((e) => buildHabitTile(e.key, e.value))
-                  .toList(),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addHabit,
-        child: const Icon(Icons.add),
-      ),
+            Row(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    'Today Habit',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Spacer(),
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Text(
+                    'See all',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                children: habits.entries
+                    .map((e) => buildHabitTile(e.key, e.value))
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _addHabit,
+          child: const Icon(Icons.add),
+        ),
+      );
+    }
+
+    // 2. Navigation Pages
+    final List<Widget> pages = [
+      habitHome(), // Index 0
+      const ProgressPage(), // Index 1
+      Settings(), // ind 2
+    ];
+
+    // 3. Main Shell (only holds the Bottom Bar and current Page)
+    return Scaffold(
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _navigateBottomBar,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
